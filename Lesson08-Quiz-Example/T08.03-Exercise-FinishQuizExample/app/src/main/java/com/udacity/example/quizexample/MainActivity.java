@@ -23,6 +23,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.udacity.example.droidtermsprovider.DroidTermsExampleContract;
 
@@ -48,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     // advance the app to the next word
     private final int STATE_SHOWN = 1;
 
+    private TextView mVisulizedWord;
+    private TextView mVisualizedWordDefinition;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Get the views
         // TODO (1) You'll probably want more than just the Button
+        mVisulizedWord = (TextView) findViewById(R.id.text_view_word);
+        mVisualizedWordDefinition = (TextView) findViewById(R.id.text_view_definition);
         mButton = (Button) findViewById(R.id.button_next);
 
         //Run the database operation to get the cursor off of the main thread
@@ -90,6 +97,16 @@ public class MainActivity extends AppCompatActivity {
         // TODO (3) Go to the next word in the Cursor, show the next word and hide the definition
         // Note that you shouldn't try to do this if the cursor hasn't been set yet.
         // If you reach the end of the list of words, you should start at the beginning again.
+        mVisualizedWordDefinition.setText("");
+        if(mData.getColumnCount()>0 && !mData.isLast()){
+            mData.moveToNext();
+            mVisulizedWord.setText(mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD));
+        }else if(mData.isLast()){
+            mData.moveToFirst();
+            mVisulizedWord.setText(mData.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD));
+        }else{
+            Toast.makeText(getApplicationContext(),"errore, imprevisto mentre si cambia parola",Toast.LENGTH_SHORT).show();
+        }
         mCurrentState = STATE_HIDDEN;
 
     }
@@ -100,6 +117,15 @@ public class MainActivity extends AppCompatActivity {
         mButton.setText(getString(R.string.next_word));
 
         // TODO (4) Show the definition
+        if(mData.getColumnCount()>0 && !mData.isLast()){
+            mData.moveToNext();
+            mVisualizedWordDefinition.setText(mData.getString(DroidTermsExampleContract.COLUMN_INDEX_DEFINITION));
+        }else if(mData.isLast()){
+            mData.moveToFirst();
+            mVisualizedWordDefinition.setText(mData.getString(DroidTermsExampleContract.COLUMN_INDEX_DEFINITION));
+        }else{
+            Toast.makeText(getApplicationContext(),"errore, imprevisto mentre si cerca di visualizzare la definizione della parola corrente",Toast.LENGTH_SHORT).show();
+        }
         mCurrentState = STATE_SHOWN;
 
     }
@@ -107,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mData.close();
         // TODO (5) Remember to close your cursor!
     }
 
@@ -135,6 +162,13 @@ public class MainActivity extends AppCompatActivity {
 
             // Set the data for MainActivity
             mData = cursor;
+            if(cursor.getCount()>0){
+                cursor.moveToFirst();
+                mVisulizedWord.setText(cursor.getString(DroidTermsExampleContract.COLUMN_INDEX_WORD));
+            }else{
+                Toast.makeText(getApplicationContext(),"non ci sono parole da visualizzare",Toast.LENGTH_SHORT).show();
+            }
+
 
             // TODO (2) Initialize anything that you need the cursor for, such as setting up
             // the screen with the first word and setting any other instance variables
